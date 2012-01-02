@@ -3,7 +3,7 @@
 /// <reference path="Scripts/jquery.cookie.js" />
 /// <reference path="Chat.toast.js" />
 
-(function ($, window, document, utility) {
+(function ($, window, utility) {
     "use strict";
 
     var $chatArea = null,
@@ -21,11 +21,7 @@
         scrollTopThreshold = 75,
         toast = window.chat.toast,
         preferences = null,
-        name,
-        cyclingMessageHistory = false,
-        lastCycledMessage = null,
-        $window = $(window),
-        $document = $(document);
+        name;
 
     function getRoomId(roomName) {
         return escape(roomName.toLowerCase()).replace(/[^a-z0-9]/, '_');
@@ -535,7 +531,7 @@
             }
 
             // DOM events
-            $document.on('click', 'h3.collapsible_title', function () {
+            $(document).on('click', 'h3.collapsible_title', function () {
                 var $message = $(this).closest('.message'),
                     nearEnd = ui.isNearTheEnd();
 
@@ -546,11 +542,11 @@
                 });
             });
 
-            $document.on('click', '#tabs li', function () {
+            $(document).on('click', '#tabs li', function () {
                 ui.setActiveRoom($(this).data('name'))
             });
 
-            $document.on('click', 'li.room', function () {
+            $(document).on('click', 'li.room', function () {
                 var roomName = $(this).data('name');
 
                 navigateToRoom(roomName);
@@ -558,7 +554,7 @@
                 return false;
             });
 
-            $document.on('click', '#tabs li .close', function (ev) {
+            $(document).on('click', '#tabs li .close', function (ev) {
                 var roomName = $(this).closest('li').data('name');
 
                 $ui.trigger(ui.events.closeRoom, [roomName]);
@@ -568,7 +564,7 @@
             });
 
             // handle click on notifications
-            $document.on('click', '.notification a.info', function (ev) {
+            $(document).on('click', '.notification a.info', function (ev) {
                 var $notification = $(this).closest('.notification');
 
                 if ($(this).hasClass('collapse')) {
@@ -636,19 +632,19 @@
                 }
             });
 
-            $window.blur(function () {
+            $(window).blur(function () {
                 ui.focus = false;
                 $ui.trigger(ui.events.blurit);
             });
 
-            $window.focus(function () {
+            $(window).focus(function () {
                 // clear unread count in active room
                 var room = getCurrentRoomElements();
                 room.makeActive();
                 triggerFocus();
             });
 
-            $window.resize(function () {
+            $(window).resize(function () {
                 var room = getCurrentRoomElements();
                 room.scrollToBottom();
             });
@@ -657,32 +653,23 @@
                 var key = ev.keyCode || ev.which;
                 switch (key) {
                     case Keys.Up:
-                        cycleMessage(ui.events.prevMessage);
+                        $ui.trigger(ui.events.prevMessage);
                         break;
+
                     case Keys.Down:
-                        cycleMessage(ui.events.nextMessage);
-                        cyclingMessages = true;
+                        $ui.trigger(ui.events.nextMessage);
                         break;
+
                     case Keys.Esc:
                         $(this).val('');
                         break;
                     case Keys.Enter:
                         triggerSend();
+
                         ev.preventDefault();
                         return false;
-                    default:
-                        cyclingMessageHistory = false;
-
                 }
             });
-
-            function cycleMessage(messageHistoryDirection) {
-                var currentMessage = $newMessage[0].value;
-                if (cyclingMessageHistory || currentMessage.length === 0 || lastCycledMessage === currentMessage) {
-                    $ui.trigger(messageHistoryDirection);
-                    cyclingMessageHistory = true;
-                }
-            }
 
             // Auto-complete for user names
             $newMessage.autoTabComplete({
@@ -737,7 +724,6 @@
         },
         setMessage: function (value) {
             $newMessage.val(value);
-            lastCycledMessage = value;
             if (value) {
                 $newMessage.selectionEnd = value.length;
             }
@@ -1144,4 +1130,4 @@
         window.chat = {};
     }
     window.chat.ui = ui;
-})(jQuery, window, window.document, window.chat.utility);
+})(jQuery, window, window.chat.utility);
